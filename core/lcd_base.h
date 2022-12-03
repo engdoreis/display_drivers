@@ -21,6 +21,10 @@
 #define ENDIANESS_TO_HALF_WORD(_x) (uint16_t)(_x)
 #endif
 
+#define MIN(_A, _B) _A > _B ? _B : _A
+#define MAX(_A, _B) _A < _B ? _B : _A
+
+
 // TODO: Define error codes.
 typedef struct Result_st {
   uint32_t code; /*!< */

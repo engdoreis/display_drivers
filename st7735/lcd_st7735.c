@@ -4,7 +4,6 @@
 
 #include "lcd_st7735.h"
 
-#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -268,8 +267,8 @@ Result lcd_st7735_fill_rectangle(St7735Context *ctx, LCD_rectangle rectangle, ui
     return (Result){.code = -1};
   }
 
-  uint16_t w = fmin(rectangle.origin.x + rectangle.width, ctx->parent.width) - rectangle.origin.x;
-  uint16_t h = fmin(rectangle.origin.y + rectangle.height, ctx->parent.height) - rectangle.origin.y;
+  uint16_t w = MIN(rectangle.origin.x + rectangle.width, ctx->parent.width) - rectangle.origin.x;
+  uint16_t h = MIN(rectangle.origin.y + rectangle.height, ctx->parent.height) - rectangle.origin.y;
 
   color = LCD_rgb24_to_bgr565(color);
 
