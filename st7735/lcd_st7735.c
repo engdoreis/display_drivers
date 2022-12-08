@@ -144,10 +144,8 @@ static void write_command(St7735Context *ctx, uint8_t command) {
 
 static void write_buffer(St7735Context *ctx, const uint8_t *buffer, size_t length) {
   if (length) {
-    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
     ctx->parent.interface->spi_write(ctx->parent.interface->handle, (uint8_t *)buffer, length);
   }
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
 }
 
 static void delay(St7735Context *ctx, uint32_t millisecond) { ctx->parent.interface->timer_delay(millisecond); }
@@ -165,7 +163,9 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
     delay_ms = numArgs & DELAY;  // If hibit set, delay follows args
     numArgs &= ~DELAY;           // Mask out delay bit
 
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
     write_buffer(ctx, addr, numArgs);
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
     addr += numArgs;
 
     if (delay_ms) {
@@ -181,11 +181,15 @@ static void set_address(St7735Context *ctx, uint8_t x0, uint8_t y0, uint8_t x1, 
 
   coordinate = x0 << 8 | x1 << 24;
   write_command(ctx, ST7735_CASET);  // Column addr set
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
 
   coordinate = y0 << 8 | y1 << 24;
   write_command(ctx, ST7735_RASET);  // Row addr set
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
 
   write_command(ctx, ST7735_RAMWR);  // write to RAM
 }
@@ -216,7 +220,9 @@ Result lcd_st7735_draw_pixel(St7735Context *ctx, LCD_Point pixel, uint32_t color
 
   set_address(ctx, pixel.x, pixel.y, pixel.x + 1, pixel.y + 1);
 
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   write_buffer(ctx, (uint8_t *)&color, 2);
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
@@ -233,9 +239,11 @@ Result lcd_st7735_draw_vertical_line(St7735Context *ctx, LCD_Line line, uint32_t
   color = LCD_rgb24_to_bgr565(color);
   set_address(ctx, line.origin.x, line.origin.y, line.origin.x, line.origin.y + line.length - 1);
 
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   while (line.length--) {
     write_buffer(ctx, (uint8_t *)&color, 2);
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
@@ -253,9 +261,11 @@ Result lcd_st7735_draw_horizontal_line(St7735Context *ctx, LCD_Line line, uint32
 
   color = LCD_rgb24_to_bgr565(color);
 
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   while (line.length--) {
     write_buffer(ctx, (uint8_t *)&color, 2);
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
@@ -279,10 +289,13 @@ Result lcd_st7735_fill_rectangle(St7735Context *ctx, LCD_rectangle rectangle, ui
   }
 
   set_address(ctx, rectangle.origin.x, rectangle.origin.y, rectangle.origin.x + w - 1, rectangle.origin.y + h - 1);
+
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   // Iterate through the lines.
   for (int x = h; x > 0; x--) {
     write_buffer(ctx, (uint8_t *)row, sizeof(row));
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
@@ -292,7 +305,7 @@ Result lcd_st7735_putchar(St7735Context *ctx, LCD_Point origin, char character) 
   uint16_t buffer[char_descriptor->width];
 
   set_address(ctx, origin.x, origin.y, origin.x + char_descriptor->width - 1, origin.y + font->height - 1);
-
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   const uint8_t *char_bitmap = &font->bitmap_table[char_descriptor->position - 1];
   for (int row = 0; row < font->height; row++) {
     for (int column = 0; column < char_descriptor->width; column++) {
@@ -302,6 +315,7 @@ Result lcd_st7735_putchar(St7735Context *ctx, LCD_Point origin, char character) 
     }
     write_buffer(ctx, (uint8_t *)buffer, sizeof(buffer));
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
@@ -329,21 +343,24 @@ Result lcd_st7735_draw_bgr(St7735Context *ctx, LCD_rectangle rectangle, const ui
   set_address(ctx, rectangle.origin.x, rectangle.origin.y, rectangle.origin.x + rectangle.width - 1,
               rectangle.origin.y + rectangle.height - 1);
 
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   for (int i = 0; i < rectangle.width * rectangle.height * 3; i += 3) {
     uint16_t color = LCD_rgb24_to_bgr565(bgr[i] << 16 | bgr[i + 1] << 8 | bgr[i + 2]);
     write_buffer(ctx, (uint8_t *)&color, 2);
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
 Result lcd_st7735_draw_rgb565(St7735Context *ctx, LCD_rectangle rectangle, const uint8_t *rgb) {
   set_address(ctx, rectangle.origin.x, rectangle.origin.y, rectangle.origin.x + rectangle.width - 1,
               rectangle.origin.y + rectangle.height - 1);
-
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   for (int i = 0; i < rectangle.width * rectangle.height * 2; i += 2, rgb += 2) {
     uint16_t color = LCD_rgb565_to_bgr565(rgb);
     write_buffer(ctx, (uint8_t *)&color, 2);
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
 
