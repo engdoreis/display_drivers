@@ -194,6 +194,13 @@ static void set_address(St7735Context *ctx, uint8_t x0, uint8_t y0, uint8_t x1, 
   write_command(ctx, ST7735_RAMWR);  // write to RAM
 }
 
+static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
+  write_command(ctx, addr);
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+  write_buffer(ctx, (uint8_t *)&value, sizeof(value));
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+}
+
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   LCD_Init(&ctx->parent, interface, 160, 128);
   int result = 0;
@@ -203,6 +210,17 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   run_script(ctx, init_script_r3);
 
   return (Result){.code = result};
+}
+
+Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
+  const static uint8_t st7735_orientation_map[] = {
+      0,
+      ST77_MADCTL_MX | ST77_MADCTL_MV,
+      ST77_MADCTL_MX | ST77_MADCTL_MY,
+      ST77_MADCTL_MY | ST77_MADCTL_MV,
+  };
+
+  write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
 }
 
 Result lcd_st7735_clean(St7735Context *ctx) {
@@ -360,6 +378,26 @@ Result lcd_st7735_draw_rgb565(St7735Context *ctx, LCD_rectangle rectangle, const
     uint16_t color = LCD_rgb565_to_bgr565(rgb);
     write_buffer(ctx, (uint8_t *)&color, 2);
   }
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  return (Result){.code = 0};
+}
+
+Result lcd_st7735_rgb565_start(St7735Context *ctx, LCD_rectangle rectangle) {
+  set_address(ctx, rectangle.origin.x, rectangle.origin.y, rectangle.origin.x + rectangle.width - 1,
+              rectangle.origin.y + rectangle.height - 1);
+  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+  return (Result){.code = 0};
+}
+
+Result lcd_st7735_rgb565_put(St7735Context *ctx, const uint8_t *rgb, size_t size) {
+  for (int i = 0; i < size; i += 2, rgb += 2) {
+    uint16_t color = LCD_rgb565_to_bgr565(rgb);
+    write_buffer(ctx, (uint8_t *)&color, 2);
+  }
+  return (Result){.code = 0};
+}
+
+Result lcd_st7735_rgb565_finish(St7735Context *ctx) {
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }

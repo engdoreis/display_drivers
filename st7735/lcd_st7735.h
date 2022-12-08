@@ -111,6 +111,34 @@ Result lcd_st7735_draw_bgr(St7735Context *ctx, LCD_rectangle rectangle, const ui
 Result lcd_st7735_draw_rgb565(St7735Context *ctx, LCD_rectangle rectangle, const uint8_t *rgb);
 
 /**
+ * @brief Starts the iterative draw session.
+ *
+ * @param ctx Handle.
+ * @param rectangle Definition of the area used by the image.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_rgb565_start(St7735Context *ctx, LCD_rectangle rectangle);
+
+/**
+ * @brief Starts a session to draw a RGB BMP iteratively.
+ *
+ * @param ctx Handle.
+ * @param rectangle Definition of the area used by the image.
+ * @param bgr Pointer to a buffer containing the image. Each pixel is defined by 2 bytes.
+ * @param size Size of the buffer in bytes.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_rgb565_put(St7735Context *ctx, const uint8_t *rgb, size_t size);
+
+/**
+ * @brief Finish the iterative draw session.
+ *
+ * @param ctx Handle.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_rgb565_finish(St7735Context *ctx);
+
+/**
  * @brief Draw a solid rectangle.
  *
  * @param ctx Handle.
@@ -161,6 +189,15 @@ Result lcd_st7735_putchar(St7735Context *ctx, LCD_Point origin, char character);
  * @return Result of the operation.
  */
 Result lcd_st7735_puts(St7735Context *ctx, LCD_Point origin, const char *text);
+
+/**
+ * @brief Set the display orientation
+ *
+ * @param ctx Handle.
+ * @param orientation The orientation to be set.
+ * @return Result of the operation
+ */
+Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation);
 
 /**
  * @brief Finish.
