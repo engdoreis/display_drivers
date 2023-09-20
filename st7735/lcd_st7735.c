@@ -89,10 +89,10 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
 
 Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
   const static uint8_t st7735_orientation_map[] = {
-      0,
+      ST77_MADCTL_MY | ST77_MADCTL_MV,
       ST77_MADCTL_MX | ST77_MADCTL_MV,
       ST77_MADCTL_MX | ST77_MADCTL_MY,
-      ST77_MADCTL_MY | ST77_MADCTL_MV,
+      0,
   };
 
   write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
