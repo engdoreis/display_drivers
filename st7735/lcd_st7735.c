@@ -216,7 +216,7 @@ Result lcd_st7735_putchar(St7735Context *ctx, LCD_Point origin, char character) 
 }
 
 Result lcd_st7735_puts(St7735Context *ctx, LCD_Point pos, const char *text) {
-  size_t count   = 0;
+  size_t count = 0;
 
   while (*text) {
     uint32_t width = ctx->parent.font->descriptor_table[*text - ctx->parent.font->startCharacter].width;
