@@ -96,8 +96,12 @@ Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientatio
       ST77_MADCTL_MV | ST77_MADCTL_MY,
       0,
   };
+  const static uint8_t st7735_width_map[] = {160, 128, 160, 128};
+  const static uint8_t st7735_height_map[] = {128, 160, 128, 160};
 
   write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
+  ctx->parent.width  = st7735_width_map[orientation];
+  ctx->parent.height = st7735_height_map[orientation];
   return (Result){.code = 0};
 }
 
