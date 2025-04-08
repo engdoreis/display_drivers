@@ -1,6 +1,6 @@
 # display_drivers
-This driver is designed to be fairly simple to port and use in any platform.
-It is completely hardware independent, the access to the necessary hardware is provided by callbacks functions that should be implemented by the application.
+This driver prioritizes platform portability and ease of use. It achieves hardware independence
+through application-provided callback functions, which handle all necessary hardware interactions.
 
 Example:
 ```C

@@ -159,7 +159,9 @@ Result lcd_st7735_fill_rectangle(St7735Context *ctx, LCD_rectangle rectangle, ui
  * @param font Pointer to the font to be used.
  * @return Result of the operation.
  */
-inline Result lcd_st7735_set_font(St7735Context *ctx, const Font *font) { return LCD_set_font(&ctx->parent, font); }
+static inline Result lcd_st7735_set_font(St7735Context *ctx, const Font *font) {
+  return LCD_set_font(&ctx->parent, font);
+}
 
 /**
  * @brief Set the background and foreground colors for text printing.
@@ -169,7 +171,8 @@ inline Result lcd_st7735_set_font(St7735Context *ctx, const Font *font) { return
  * @param foreground_color  Color in RGB 24 bits format.
  * @return Result of the operation.
  */
-inline Result lcd_st7735_set_font_colors(St7735Context *ctx, uint32_t background_color, uint32_t foreground_color) {
+static inline Result lcd_st7735_set_font_colors(St7735Context *ctx, uint32_t background_color,
+                                                uint32_t foreground_color) {
   ctx->rgb_background = background_color;
   ctx->rgb_foreground = foreground_color;
   return LCD_set_font_colors(&ctx->parent, LCD_rgb24_to_bgr565(background_color),

@@ -58,7 +58,6 @@ typedef struct LCD_Interface_st {
    *
    * @param cs_high Set chip select pin to 1 if true, otherwise 0.
    * @param dc_high Set D/C pin to 1 if true, otherwise 0.
-   *
    */
   uint32_t (*gpio_write)(void *handle, bool cs_high, bool dc_high);
 
@@ -66,18 +65,17 @@ typedef struct LCD_Interface_st {
    * @brief Simple cpu delay
    *
    * @param ms Time the delay should take in milliseconds.
-   *
    */
-  void (*timer_delay)(uint32_t ms);
+  void (*timer_delay)(uint32_t millis);
 } LCD_Interface;
 
 typedef struct LCD_Context_st {
-  LCD_Interface *interface;  /*!< */
-  uint32_t width;            /*!< */
-  uint32_t height;           /*!< */
-  const Font *font;          /*!< */
-  uint32_t background_color; /*<  */
-  uint32_t foreground_color; /*<  */
+  LCD_Interface *interface;  /*!< Callbacks to access the hardware.*/
+  uint32_t width;            /*!< Width of the display in pixels*/
+  uint32_t height;           /*!< Height of the display in pixels*/
+  const Font *font;          /*!< Font bitmaps*/
+  uint32_t background_color; /*< Background color for font bitmaps */
+  uint32_t foreground_color; /*< Foreground color for font bitmaps */
 } LCD_Context;
 
 typedef struct LCD_Point_st {
@@ -87,13 +85,13 @@ typedef struct LCD_Point_st {
 
 typedef struct LCD_Line_st {
   LCD_Point origin; /*!< Coordinates of the origin.*/
-  size_t length;    /*!< Length of the line from the origin.*/
+  size_t length;    /*!< Length from the origin.*/
 } LCD_Line;
 
 typedef struct LCD_rectangle_st {
   LCD_Point origin; /*!< Coordinates of the origin.*/
-  size_t width;     /*!< Width.*/
-  size_t height;    /*!< Height.*/
+  size_t width;     /*!< Width from the origin.*/
+  size_t height;    /*!< Height from the origin.*/
 } LCD_rectangle;
 
 Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height);
