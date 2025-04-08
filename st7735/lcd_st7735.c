@@ -52,9 +52,12 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
 }
 
 static void set_address(St7735Context *ctx, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-  uint32_t coordinate = 0;
+  x0 += ctx->row_offset;
+  x1 += ctx->row_offset;
+  y0 += ctx->col_offset;
+  y1 += ctx->col_offset;
 
-  coordinate = (uint32_t)(x0 << 8 | x1 << 24);
+  uint32_t coordinate = (uint32_t)(x0 << 8 | x1 << 24);
   write_command(ctx, ST7735_CASET);  // Column addr set
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
   write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
@@ -79,6 +82,7 @@ static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   LCD_Init(&ctx->parent, interface, 160, 128);
   lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
+  ctx->col_offset = ctx->row_offset = 0;
 
   int32_t result = 0;
 
@@ -96,7 +100,7 @@ Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientatio
       ST77_MADCTL_MV | ST77_MADCTL_MY,
       0,
   };
-  const static uint8_t st7735_width_map[] = {160, 128, 160, 128};
+  const static uint8_t st7735_width_map[]  = {160, 128, 160, 128};
   const static uint8_t st7735_height_map[] = {128, 160, 128, 160};
 
   write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
@@ -283,11 +287,5 @@ Result lcd_st7735_rgb565_finish(St7735Context *ctx) {
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
   return (Result){.code = 0};
 }
-
-extern Result lcd_st7735_set_font(St7735Context *ctx, const Font *font);
-
-extern Result lcd_st7735_set_font_colors(St7735Context *ctx, uint32_t background_color, uint32_t foreground_color);
-
-extern Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width);
 
 Result lcd_st7735_close(St7735Context *ctx) { return (Result){.code = 0}; }
