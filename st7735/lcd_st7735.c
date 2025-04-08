@@ -52,19 +52,20 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
 }
 
 static void set_address(St7735Context *ctx, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-  uint32_t coordinate = 0;
-
-  coordinate = (uint32_t)(x0 << 8 | x1 << 24);
-  write_command(ctx, ST7735_CASET);  // Column addr set
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
-  write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
-
-  coordinate = (uint32_t)(y0 << 8 | y1 << 24);
-  write_command(ctx, ST7735_RASET);  // Row addr set
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
-  write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  {
+    uint8_t coordinate[4] = {(uint8_t)(x0 >> 8), (uint8_t)x0, (uint8_t)(x1 >> 8), (uint8_t)x1};
+    write_command(ctx, ST7735_CASET);  // Column addr set
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    write_buffer(ctx, coordinate, sizeof(coordinate));
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  }
+  {
+    uint8_t coordinate[4] = {(uint8_t)(y0 >> 8), (uint8_t)y0, (uint8_t)(y1 >> 8), (uint8_t)y1};
+    write_command(ctx, ST7735_RASET);  // Row addr set
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    write_buffer(ctx, coordinate, sizeof(coordinate));
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  }
 
   write_command(ctx, ST7735_RAMWR);  // write to RAM
 }
