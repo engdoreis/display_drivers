@@ -12,8 +12,10 @@
 
 #include "font.h"
 
+#ifndef LCD_IS_LITTLE_ENDIAN
 // TODO: define a way to check endianess in multiple platforms.
 #define LCD_IS_LITTLE_ENDIAN 1
+#endif
 
 #if LCD_IS_LITTLE_ENDIAN
 #define ENDIANESS_TO_HALF_WORD(_x) (uint16_t)((_x >> 8) | (_x << 8))
@@ -21,8 +23,13 @@
 #define ENDIANESS_TO_HALF_WORD(_x) (uint16_t)(_x)
 #endif
 
+#ifndef MIN
 #define MIN(_A, _B) _A > _B ? _B : _A
+#endif
+
+#ifndef MAX
 #define MAX(_A, _B) _A < _B ? _B : _A
+#endif
 
 typedef enum {
   LCD_Rotate0 = 0,
@@ -58,6 +65,8 @@ typedef struct LCD_Interface_st {
    *
    * @param cs_high Set chip select pin to 1 if true, otherwise 0.
    * @param dc_high Set D/C pin to 1 if true, otherwise 0.
+   *
+   * @return 0 if ok.
    */
   uint32_t (*gpio_write)(void *handle, bool cs_high, bool dc_high);
 
@@ -77,7 +86,7 @@ typedef struct LCD_Interface_st {
   /**
    * @brief Simple cpu delay
    *
-   * @param ms Time the delay should take in milliseconds.
+   * @param millis Time the delay should take in milliseconds.
    */
   void (*timer_delay)(uint32_t millis);
 } LCD_Interface;

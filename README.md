@@ -42,5 +42,8 @@ void main(void){
     lcd_st7735_fill_rectangle(&ctx, (LCD_rectangle){.origin = {.x = 0, .y = 0},
         .end = {.x = 160, .y = 128}}, 0x00FF00);
 }
-
 ```
+
+## Configuration
+### Endianess
+The driver assumes the platform is little-endian by default. If your platform is big-endian, define the macro LCD_IS_LITTLE_ENDIAN as 0 before including header or in the build system.
