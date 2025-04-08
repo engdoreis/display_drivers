@@ -62,6 +62,19 @@ typedef struct LCD_Interface_st {
   uint32_t (*gpio_write)(void *handle, bool cs_high, bool dc_high);
 
   /**
+   * @brief Apply a hardware reset to the display by toggling the pin.
+   */
+  uint32_t (*reset)(void *handle);
+
+  /**
+   * @brief Apply a hardware reset to the display by toggling the pin.
+   * @param pwm Set the pwm (0-100).
+   *
+   * Note: Future use only.
+   */
+  void (*set_backlight_pwm)(void *handle, uint8_t pwm);
+
+  /**
    * @brief Simple cpu delay
    *
    * @param ms Time the delay should take in milliseconds.

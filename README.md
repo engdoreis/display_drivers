@@ -14,9 +14,17 @@ static uint32_t gpio_write(void *handle, bool cs, bool dc){
     return 0;
 }
 
-static void sleep_ms(uint32_t ms){
+static uint32_t reset(void *handle){
     //Code here.
     return 0;
+}
+
+static void set_pwm(void *handle, uint8_t pwm){
+    //Code here.
+}
+
+static void sleep_ms(uint32_t ms){
+    //Code here.
 }
 
 void main(void){
@@ -25,6 +33,8 @@ void main(void){
         .handle = NULL,
         .spi_write = spi_write,
         .gpio_write = gpio_write,
+        .reset = reset,
+        .set_backlight_pwm = set_pwm,
         .timer_delay = sleep_ms,
     };
 
