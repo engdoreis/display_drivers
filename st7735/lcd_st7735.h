@@ -247,4 +247,14 @@ Result lcd_st7735_close(St7735Context *ctx);
  */
 void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, size_t height);
 
+/**
+ * @brief Trying to detect the GM[2:0] pad configuration and return the configured resolution.
+ *
+ * This function requires the `spi_read` callback to be implemented.
+ *
+ * @param[out] width The width in pixels.
+ * @param[out] height The height in pixels.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_check_frame_buffer_resolution(St7735Context *lcd, size_t *width, size_t *height);
 #endif

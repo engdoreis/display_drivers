@@ -325,3 +325,144 @@ Result lcd_st7735_reset(St7735Context *ctx, bool hw) {
 }
 
 Result lcd_st7735_close(St7735Context *ctx) { return (Result){.code = 0}; }
+
+void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, size_t height) {
+  size_t w = (width - ctx->parent.width) / 2;
+  size_t h = (height - ctx->parent.height) / 2;
+  if (ctx->parent.orientation == LCD_Rotate0 || ctx->parent.orientation == LCD_Rotate180) {
+    ctx->col_offset = w;
+    ctx->row_offset = h;
+  } else {
+    ctx->col_offset = h;
+    ctx->row_offset = w;
+  }
+}
+
+// Determine if an LCD offset of 2 pixels in the narrow dimension and
+// 1 pixel in the wide dimension must be applied for correct function.
+// Involves writing a bundle pixels to the LCD and reading some back
+// from the start of the affected rows to discover the default width.
+//
+// The state of the GM[2:0] config pads of the ST7735 controller within
+// the LCD is the root value we wish to discover, but can only do so
+// by observing side-effects. This function infers GM state from the
+// reset value the of CASET register, which itself must be inferred from
+// pixel buffer behaviour after a reset as it cannot be read directly.
+// The test used is whether the 129th pixel or the 133rd pixel written
+// ends up at the start of the second row, as distinguished by writing
+// different values after the 132nd. We check multiple rows to be sure.
+// Wrapping at 128 infers CASET XE[7:0]=0x7F, which infers GM[2:0]='011'.
+// Wrapping at 132 infers CASET XE[7:0]=0x83, which infers GM[2:0]='000'.
+//
+// GM[2:0]='000' (132x162) is incorrect for the 128x160 panel actually present,
+// meaning minor coordinate offsets are needed. The offsets are 2 pixels
+// in the narrow dimension (x if portrait) and 1 pixel in the wide dimension
+// (y if portrait). This is due to how the ST7735 controller maps the
+// contents of the internal frame buffer to display itself. See the
+// (unfortunately error-ridden) ST7735 datasheet for more details.
+//
+// NOTE1: Must be run after a HW or SW reset and before any CASET commands.
+// NOTE2: Does NOT always perform a reset before returning. State may be dirty.
+
+Result lcd_st7735_check_frame_buffer_resolution(St7735Context *ctx, size_t *width, size_t *height) {
+  enum {
+    attempts = 3,
+    buf_len  = 4,
+  };
+
+  uint8_t buf[buf_len];
+  const uint8_t patterns[4] = {0xA8, 0xCC, 0xE0, 0x90};
+  uint8_t result;
+
+  if (ctx == NULL && height == NULL && width == NULL) {
+    return (Result){.code = ErrorNullArgs};
+  }
+
+  if (ctx->parent.interface->spi_read == NULL) {
+    return (Result){.code = ErrorNullCallback};
+  }
+
+  for (unsigned iter = 0; iter < attempts; iter++) {
+    // Ensure CS line is de-asserted ahead of any commands
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, false);
+
+    // Select 18-bit pixel format. Affects writes only (reads always 18-bit).
+    // 18-bit pixel format (as per ST7735 datasheet):
+    //
+    //  MSB                                                                 LSB
+    //  R5 R4 R3 R2 R1 R0 -- -- G5 G4 G3 G2 G1 G0 -- -- B5 B4 B3 B2 B1 B0 -- --
+    // | First pixel byte      | Second pixel byte     | Last pixel byte       |
+    //
+    // Where "R5" is the first bit on the wire, and "--" bits are ignored.
+    write_command(ctx, ST7735_COLMOD);
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    uint8_t value = 0x06;
+    write_buffer(ctx, &value, sizeof(value));
+
+    // Write 4 lots (possibly lines) of 132 pixels into the frame buffer.
+    // Change the value being written every 132 pixels.
+    write_command(ctx, ST7735_RAMWR);
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    for (unsigned l = 0u; l < sizeof(patterns); l++) {
+      for (unsigned p = 0u; p < 132; p++) {
+        // 18-bit pixel value packed into 24-bit (3 bytes) payload.
+        // Two padding LSBs and 6 MSBs of real data per byte/channel.
+        buf[0] = patterns[l];  // red
+        buf[1] = patterns[l];  // green
+        buf[2] = patterns[l];  // blue
+        write_buffer(ctx, buf, 3);
+      }
+    }
+
+    // Read back a pixel from the start of the second, third, and fourth lines
+    // of the external frame buffer to determine whether the ST7735 controller
+    // in the LCD assembly is configured for 128x160 or 132x162 (by GM pads).
+    // Pixels are always read back in 18-bit format, regardless of COLMOD.
+    result = 0;
+    for (uint8_t l = 1u; l < sizeof(patterns); l++) {
+      // Setting the addess in the frame buffer to start reading the pixels.
+      buf[0] = l >> 8;
+      buf[1] = l;
+      buf[2] = 99 >> 8;
+      buf[3] = 99;
+      write_command(ctx, ST7735_RASET);
+      ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+      write_buffer(ctx, buf, 4);
+
+      write_command(ctx, ST7735_RAMRD);
+      // Read 1 dummy byte and 3 actual bytes (offset by a dummy clock cycle)
+      ctx->parent.interface->spi_read(ctx->parent.interface->handle, buf, 4);
+      ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, false);
+
+      if (buf[1] == (patterns[l] >> 1) && buf[2] == (patterns[l] >> 1) && buf[3] == (patterns[l] >> 1)) {
+        // Value read was that written for that line (shift adjusted for
+        // dummy bit), so controller is configured for 132x162 mode (GM=000).
+        result |= 1u << l;
+      } else if (!(buf[1] == (patterns[l - 1] >> 1) && buf[2] == (patterns[l - 1] >> 1) &&
+                   buf[3] == (patterns[l - 1] >> 1))) {
+        // Unexpected value. Reset and retry, or give up and use default.
+        result = 0xFFu;
+        break;
+      }
+    }
+
+    if (result == 0x00) {
+      // Three out of three agree, 128-high it gladly be
+      *width  = 160;
+      *height = 128;
+      return (Result){.code = ErrorOk};
+    }
+    if (result == 0x0e) {
+      // Three out of three agree, 132-high it sadly be
+      *width  = 162;
+      *height = 132;
+      return (Result){.code = ErrorOk};
+    }
+
+    // Software reset to restore most state to default - particularly CASET
+    lcd_st7735_reset(ctx, /*hw=*/false);
+  }
+
+  // Ran out of attempts, use default (correct 128-wide)
+  return (Result){.code = ErrorOperationFailed};
+}

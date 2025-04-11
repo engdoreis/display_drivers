@@ -47,9 +47,12 @@ typedef enum {
   LCD_Rotate270,
 } LCD_Orientation;
 
-typedef enum ErrorCode_e{
-  ErrorOk = 0,
-}ErrorCode;
+typedef enum ErrorCode_e {
+  ErrorOk              = 0,
+  ErrorNullArgs        = -1,
+  ErrorNullCallback    = -2,
+  ErrorOperationFailed = -3,
+} ErrorCode;
 
 typedef struct Result_st {
   int32_t code; /*!< See #ErrorCode */
