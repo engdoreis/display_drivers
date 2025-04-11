@@ -293,4 +293,14 @@ Result lcd_st7735_rgb565_finish(St7735Context *ctx) {
   return (Result){.code = 0};
 }
 
+Result lcd_st7735_reset(St7735Context *ctx, bool hw) {
+  if (hw && ctx->parent.interface->reset) {
+    ctx->parent.interface->reset(ctx->parent.interface->handle);
+  } else {
+    write_command(ctx, ST7735_SWRESET);
+    delay(ctx, 120);
+  }
+  return (Result){.code = 0};
+}
+
 Result lcd_st7735_close(St7735Context *ctx) { return (Result){.code = 0}; }

@@ -48,6 +48,16 @@ typedef struct stSt7735Context {
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface);
 
 /**
+ * @brief Reset the lcd controller.
+ *
+ * @param ctx Handle.
+ * @param hw If `true` perform a hardware reset (if the callback is registered), otherwise send a software reset
+ * command.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_reset(St7735Context *ctx, bool hw);
+
+/**
  * @brief Clean the screen by drawing a write rectangle.
  *
  * @param ctx Handle.
