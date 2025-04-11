@@ -14,16 +14,19 @@
 
 /**
  * @brief Context struct.
- *
  */
 typedef struct stSt7735Context {
   LCD_Context parent; /*!< Base context*/
   uint32_t rgb_background;
   uint32_t rgb_foreground;
+  // Custom offsets are necessary for some cheap displays due to controller configurations that exceed the panel's
+  // actual resolution.
+  size_t col_offset;
+  size_t row_offset;
 } St7735Context;
 
 /**
- * @brief Initialize the LCD driver.
+ * @brief Initialize the LCD driver interfaces.
  *
  * Example:
  * ```C
@@ -45,6 +48,24 @@ typedef struct stSt7735Context {
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface);
 
 /**
+ * @brief Initialize the LCD controller, this command must me called only after `lcd_st7735_init`.
+ *
+ * @param ctx Handle.
+ * @return Result of the operation.the operation.
+ */
+Result lcd_st7735_startup(St7735Context *ctx);
+
+/**
+ * @brief Reset the lcd controller.
+ *
+ * @param ctx Handle.
+ * @param hw If `true` perform a hardware reset (if the callback is registered), otherwise send a software reset
+ * command.
+ * @return Result of the operation.the operation.
+ */
+Result lcd_st7735_reset(St7735Context *ctx, bool hw);
+
+/**
  * @brief Clean the screen by drawing a write rectangle.
  *
  * @param ctx Handle.
@@ -60,7 +81,7 @@ Result lcd_st7735_clean(St7735Context *ctx);
  * @param[out] width Pointer to receive the width in pixels.
  * @return Result of the operation.
  */
-inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
+static inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
   return LCD_get_resolution(&ctx->parent, height, width);
 }
 
@@ -216,4 +237,28 @@ Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientatio
  */
 Result lcd_st7735_close(St7735Context *ctx);
 
+/**
+ * @brief Set offsets to workaround a mismatch between the LCD panel resolution and the frame buffer resolution .
+ *
+ * For some cheap displays, the controller resolution may be configured to 132x162 pixels, that exceeds the panel's of
+ * 128x160 pixels.
+ * @param col The offset to be applied to the columns.
+ * @param row The offset to be applied to the rows.
+ */
+static inline void lcd_st7735_set_offset(St7735Context *ctx, size_t col, size_t row) {
+  ctx->col_offset = col;
+  ctx->row_offset = row;
+}
+
+/**
+ * @brief Trying to detect the GM[2:0] pad configuration and return the offsets that should be used to workaround the
+ * misconfiguration.
+ *
+ * This function requires the `spi_read` callback to be implemented.
+ *
+ * @param[out] col The offset to be applied to the columns.
+ * @param[out] row The offset to be applied to the rows.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_check_offset(St7735Context *lcd, size_t *col, size_t *row);
 #endif
