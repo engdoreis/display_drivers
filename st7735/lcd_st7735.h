@@ -250,4 +250,15 @@ static inline void lcd_st7735_set_offset(St7735Context *ctx, size_t col, size_t 
   ctx->row_offset = row;
 }
 
+/**
+ * @brief Trying to detect the GM[2:0] pad configuration and return the offsets that should be used to workaround the
+ * misconfiguration.
+ *
+ * This function requires the `spi_read` callback to be implemented.
+ *
+ * @param[out] col The offset to be applied to the columns.
+ * @param[out] row The offset to be applied to the rows.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_check_offset(St7735Context *lcd, size_t *col, size_t *row);
 #endif
