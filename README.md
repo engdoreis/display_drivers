@@ -40,6 +40,7 @@ void main(void){
     };
 
     lcd_st7735_init(&ctx, &interface);
+    lcd_st7735_startup(&ctx);
     lcd_st7735_fill_rectangle(&ctx, (LCD_rectangle){.origin = {.x = 0, .y = 0},
         .end = {.x = 160, .y = 128}}, 0x00FF00);
 }

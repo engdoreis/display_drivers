@@ -26,7 +26,7 @@ typedef struct stSt7735Context {
 } St7735Context;
 
 /**
- * @brief Initialize the LCD driver.
+ * @brief Initialize the LCD driver interfaces.
  *
  * Example:
  * ```C
@@ -46,6 +46,14 @@ typedef struct stSt7735Context {
  * @return Result of the operation.
  */
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface);
+
+/**
+ * @brief Initialize the LCD controller, this function must me called only after `lcd_st7735_init`.
+ *
+ * @param ctx Handle.
+ * @return Result of the operation.the operation.
+ */
+Result lcd_st7735_startup(St7735Context *ctx);
 
 /**
  * @brief Reset the lcd controller.

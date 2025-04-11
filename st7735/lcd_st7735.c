@@ -114,6 +114,10 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
   ctx->col_offset = ctx->row_offset = 0;
 
+  return (Result){.code = 0};
+}
+
+Result lcd_st7735_startup(St7735Context *ctx) {
   int32_t result = 0;
 
   run_script(ctx, init_script_b);
