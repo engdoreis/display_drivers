@@ -32,6 +32,7 @@ void main(void){
     LCD_Interface interface = {
         .handle = NULL,
         .spi_write = spi_write,
+        .spi_read = NULL,
         .gpio_write = gpio_write,
         .reset = reset,
         .set_backlight_pwm = set_pwm,

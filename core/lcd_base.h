@@ -54,14 +54,26 @@ typedef struct LCD_Interface_st {
                    application. If not intended to be used it can be `NULL` */
 
   /**
-   * @brief Send data through spi interface.
+   * @brief Write bytes to the spi bus.
    *
    * @param data Pointer to data array to be sent.
-   * @param len Len of the data to be sent.
+   * @param len Length of the data to be sent.
    *
-   * @return the number of data sent.
+   * @return the number of bytes sent.
    */
   uint32_t (*spi_write)(void *handle, uint8_t *data, size_t len);
+
+  /**
+   * @brief Clock the spi and read the data.
+   *
+   * This function is only used in more complex operations, for basic use it can be NULL.
+   *
+   * @param data Pointer to array to store the data read.
+   * @param len Length of the data to be sent.
+   *
+   * @return the number of bytes read.
+   */
+  uint32_t (*spi_read)(void *handle, uint8_t *data, size_t len);
 
   /**
    * @brief Set the state of the chip select and D/C pins.
@@ -78,9 +90,7 @@ typedef struct LCD_Interface_st {
    */
   uint32_t (*reset)(void *handle);
 
-  /**
-   * @brief Apply a hardware reset to the display by toggling the pin.
-   * @param pwm Set the pwm (0-100).
+  /** @brief Apply a hardware reset to the display by toggling the pin. @param pwm Set the pwm (0-100).
    *
    * Note: Future use only.
    */
