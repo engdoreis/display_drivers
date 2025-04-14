@@ -14,7 +14,6 @@
 
 /**
  * @brief Context struct.
- *
  */
 typedef struct stSt7735Context {
   LCD_Context parent; /*!< Base context*/
@@ -60,7 +59,7 @@ Result lcd_st7735_clean(St7735Context *ctx);
  * @param[out] width Pointer to receive the width in pixels.
  * @return Result of the operation.
  */
-inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
+static inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
   return LCD_get_resolution(&ctx->parent, height, width);
 }
 
