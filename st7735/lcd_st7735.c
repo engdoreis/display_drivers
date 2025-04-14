@@ -52,6 +52,11 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
 }
 
 static void set_address(St7735Context *ctx, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
+  x0 += ctx->row_offset;
+  x1 += ctx->row_offset;
+  y0 += ctx->col_offset;
+  y1 += ctx->col_offset;
+
   {
     uint8_t coordinate[4] = {(uint8_t)(x0 >> 8), (uint8_t)x0, (uint8_t)(x1 >> 8), (uint8_t)x1};
     write_command(ctx, ST7735_CASET);  // Column addr set
@@ -80,6 +85,7 @@ static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   LCD_Init(&ctx->parent, interface, 160, 128);
   lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
+  ctx->col_offset = ctx->row_offset = 0;
 
   int32_t result = 0;
 

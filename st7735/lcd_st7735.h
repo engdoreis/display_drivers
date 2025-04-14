@@ -19,6 +19,10 @@ typedef struct stSt7735Context {
   LCD_Context parent; /*!< Base context*/
   uint32_t rgb_background;
   uint32_t rgb_foreground;
+  // Custom offsets are necessary for some cheap displays due to controller configurations that exceed the panel's
+  // actual resolution.
+  size_t col_offset;
+  size_t row_offset;
 } St7735Context;
 
 /**
@@ -214,5 +218,15 @@ Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientatio
  * @return Result of the operation.
  */
 Result lcd_st7735_close(St7735Context *ctx);
+
+/**
+ * @brief Set the controller frame buffer resolution configured via GM[2:0].
+ * This function is used to workaround a mismatch between the LCD panel resolution and the frame buffer resolution.
+ * For some cheap displays, the controller resolution may be configured to 162x132 pixels, that exceeds the panel's
+ * resolution of 160x128 pixels.
+ * @param width The frame buffer width in pixels.
+ * @param height The frame buffer height in pixels.
+ */
+void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, size_t height);
 
 #endif

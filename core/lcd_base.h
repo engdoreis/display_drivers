@@ -139,6 +139,16 @@ static inline Result LCD_set_font(LCD_Context *ctx, const Font *font) {
   return (Result){.code = 0};
 }
 
+static inline Result LCD_get_font_size(LCD_Context *ctx, size_t *width, size_t *height) {
+  if (ctx->font == NULL) {
+    return (Result){.code = -1};
+  }
+
+  *height = ctx->font->height;
+  *width  = ctx->font->descriptor_table->width;
+  return (Result){.code = 0};
+}
+
 static inline uint16_t LCD_rgb24_to_bgr565(uint32_t rgb) {
   uint8_t r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
   uint16_t color = (uint16_t)(((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3));
