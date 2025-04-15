@@ -120,6 +120,7 @@ typedef struct LCD_Context_st {
   const Font *font;          /*!< Font bitmaps*/
   uint32_t background_color; /*< Background color for font bitmaps */
   uint32_t foreground_color; /*< Foreground color for font bitmaps */
+  LCD_Orientation orientation;
 } LCD_Context;
 
 typedef struct LCD_Point_st {
@@ -138,7 +139,8 @@ typedef struct LCD_rectangle_st {
   size_t height;    /*!< Height from the origin.*/
 } LCD_rectangle;
 
-Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height);
+Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height,
+                LCD_Orientation orientation);
 
 static inline Result LCD_get_resolution(LCD_Context *ctx, size_t *height, size_t *width) {
   *height = ctx->height;

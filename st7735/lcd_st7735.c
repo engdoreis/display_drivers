@@ -85,7 +85,7 @@ static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
 }
 
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
-  LCD_Init(&ctx->parent, interface, 160, 128);
+  LCD_Init(&ctx->parent, interface, 160, 128, LCD_Rotate0);
   lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
   ctx->col_offset = ctx->row_offset = 0;
 
