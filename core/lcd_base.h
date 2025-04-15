@@ -31,6 +31,15 @@
 #define MAX(_A, _B) _A < _B ? _B : _A
 #endif
 
+#ifndef SWAP
+#define SWAP(_A, _B, TYPE)                                                                                             \
+  do {                                                                                                                 \
+    TYPE temp = (_A);                                                                                                  \
+    (_A)      = (_B);                                                                                                  \
+    (_B)      = temp;                                                                                                  \
+  } while (false)
+#endif
+
 typedef enum {
   LCD_Rotate0 = 0,
   LCD_Rotate90,
