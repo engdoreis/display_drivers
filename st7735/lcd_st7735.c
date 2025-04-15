@@ -84,6 +84,31 @@ static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
 }
 
+static uint8_t set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
+  uint8_t madctl          = 0;
+  ctx->parent.orientation = orientation;
+  switch (orientation) {
+    case LCD_Rotate0:
+      madctl = ST77_MADCTL_MV | ST77_MADCTL_MX;
+      break;
+    case LCD_Rotate90:
+      madctl = ST77_MADCTL_MX | ST77_MADCTL_MY;
+      SWAP(ctx->parent.width, ctx->parent.height, size_t);
+      SWAP(ctx->col_offset, ctx->row_offset, size_t);
+      break;
+    case LCD_Rotate180:
+      madctl = ST77_MADCTL_MV | ST77_MADCTL_MY;
+      break;
+    case LCD_Rotate270:
+      SWAP(ctx->parent.width, ctx->parent.height, size_t);
+      SWAP(ctx->col_offset, ctx->row_offset, size_t);
+      break;
+    default:
+      break;
+  }
+  return madctl;
+}
+
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
   LCD_Init(&ctx->parent, interface, 160, 128, LCD_Rotate0);
   lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
@@ -99,18 +124,10 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
 }
 
 Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
-  const static uint8_t st7735_orientation_map[] = {
-      ST77_MADCTL_MV | ST77_MADCTL_MX,
-      ST77_MADCTL_MX | ST77_MADCTL_MY,
-      ST77_MADCTL_MV | ST77_MADCTL_MY,
-      0,
-  };
-  const static uint8_t st7735_width_map[]  = {160, 128, 160, 128};
-  const static uint8_t st7735_height_map[] = {128, 160, 128, 160};
+  uint8_t madctl = set_orientation(ctx, orientation);
 
-  write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
-  ctx->parent.width  = st7735_width_map[orientation];
-  ctx->parent.height = st7735_height_map[orientation];
+  write_register(ctx, ST7735_MADCTL, madctl | ST77_MADCTL_RGB);
+
   return (Result){.code = 0};
 }
 
