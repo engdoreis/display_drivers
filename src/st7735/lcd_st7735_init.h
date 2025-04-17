@@ -32,6 +32,10 @@
 #ifndef DISPLAY_DRIVERS_ST7735_ST7735_INIT_H_
 #define DISPLAY_DRIVERS_ST7735_ST7735_INIT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "lcd_st7735_cmds.h"
 #define NEXT_BYTE(addr) (*(const uint8_t *)(addr++))
 
@@ -159,6 +163,10 @@ static const uint8_t init_script_r3[] = {
     ST7735_DISPON ,    DELAY, 	//4: Main screen turn on, no args w/delay
       100 						//100 ms delay
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 // clang-format on
 #endif

@@ -6,6 +6,10 @@
 #ifndef DISPLAY_DRIVERS_ST7735_ST7735_H_
 #define DISPLAY_DRIVERS_ST7735_ST7735_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include "../core/font.h"
@@ -257,4 +261,9 @@ void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, si
  * @return Result of the operation.
  */
 Result lcd_st7735_check_frame_buffer_resolution(St7735Context *lcd, size_t *width, size_t *height);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

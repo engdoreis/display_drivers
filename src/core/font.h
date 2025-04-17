@@ -7,6 +7,10 @@
 #ifndef COMMON_FONT_H
 #define COMMON_FONT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef struct FontCharInfo_st {
@@ -21,5 +25,9 @@ typedef struct Font_st {
   const FontCharInfo *descriptor_table; /*< Character descriptor array. */
   const unsigned char *bitmap_table;    /*< Character bitmap array. */
 } Font;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

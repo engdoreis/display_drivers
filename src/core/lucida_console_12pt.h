@@ -6,6 +6,10 @@
 #ifndef LUCIDACONSOLE_12PT_H_
 #define LUCIDACONSOLE_12PT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include "font.h"
@@ -14,5 +18,9 @@
 extern const unsigned char lucidaConsole_12ptBitmaps[];
 extern const Font lucidaConsole_12ptFont;
 extern const FontCharInfo lucidaConsole_12ptDescriptors[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LUCIDACONSOLE_12PT_H_ */
