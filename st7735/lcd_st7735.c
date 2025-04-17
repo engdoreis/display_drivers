@@ -23,7 +23,9 @@ static void write_buffer(St7735Context *ctx, const uint8_t *buffer, size_t lengt
   }
 }
 
-static void delay(St7735Context *ctx, uint32_t millisecond) { ctx->parent.interface->timer_delay(millisecond); }
+static inline void delay(St7735Context *ctx, uint32_t millisecond) {
+  ctx->parent.interface->timer_delay(ctx->parent.interface->handle, millisecond);
+}
 
 static void run_script(St7735Context *ctx, const uint8_t *addr) {
   uint8_t numCommands, numArgs;
@@ -52,19 +54,25 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
 }
 
 static void set_address(St7735Context *ctx, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-  uint32_t coordinate = 0;
+  x0 += ctx->row_offset;
+  x1 += ctx->row_offset;
+  y0 += ctx->col_offset;
+  y1 += ctx->col_offset;
 
-  coordinate = (uint32_t)(x0 << 8 | x1 << 24);
-  write_command(ctx, ST7735_CASET);  // Column addr set
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
-  write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
-
-  coordinate = (uint32_t)(y0 << 8 | y1 << 24);
-  write_command(ctx, ST7735_RASET);  // Row addr set
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
-  write_buffer(ctx, (uint8_t *)&coordinate, sizeof(coordinate));
-  ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  {
+    uint8_t coordinate[4] = {(uint8_t)(x0 >> 8), (uint8_t)x0, (uint8_t)(x1 >> 8), (uint8_t)x1};
+    write_command(ctx, ST7735_CASET);  // Column addr set
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    write_buffer(ctx, coordinate, sizeof(coordinate));
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  }
+  {
+    uint8_t coordinate[4] = {(uint8_t)(y0 >> 8), (uint8_t)y0, (uint8_t)(y1 >> 8), (uint8_t)y1};
+    write_command(ctx, ST7735_RASET);  // Row addr set
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    write_buffer(ctx, coordinate, sizeof(coordinate));
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
+  }
 
   write_command(ctx, ST7735_RAMWR);  // write to RAM
 }
@@ -76,10 +84,40 @@ static void write_register(St7735Context *ctx, uint8_t addr, uint8_t value) {
   ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, true);
 }
 
-Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
-  LCD_Init(&ctx->parent, interface, 160, 128);
-  lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
+static uint8_t set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
+  uint8_t madctl          = 0;
+  ctx->parent.orientation = orientation;
+  switch (orientation) {
+    case LCD_Rotate0:
+      madctl = ST77_MADCTL_MV | ST77_MADCTL_MX;
+      break;
+    case LCD_Rotate90:
+      madctl = ST77_MADCTL_MX | ST77_MADCTL_MY;
+      SWAP(ctx->parent.width, ctx->parent.height, size_t);
+      SWAP(ctx->col_offset, ctx->row_offset, size_t);
+      break;
+    case LCD_Rotate180:
+      madctl = ST77_MADCTL_MV | ST77_MADCTL_MY;
+      break;
+    case LCD_Rotate270:
+      SWAP(ctx->parent.width, ctx->parent.height, size_t);
+      SWAP(ctx->col_offset, ctx->row_offset, size_t);
+      break;
+    default:
+      break;
+  }
+  return madctl;
+}
 
+Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
+  LCD_Init(&ctx->parent, interface, 160, 128, LCD_Rotate0);
+  lcd_st7735_set_font_colors(ctx, 0xFFFFFF, 0x000000);
+  ctx->col_offset = ctx->row_offset = 0;
+
+  return (Result){.code = 0};
+}
+
+Result lcd_st7735_startup(St7735Context *ctx) {
   int32_t result = 0;
 
   run_script(ctx, init_script_b);
@@ -90,18 +128,10 @@ Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface) {
 }
 
 Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientation) {
-  const static uint8_t st7735_orientation_map[] = {
-      ST77_MADCTL_MV | ST77_MADCTL_MX,
-      ST77_MADCTL_MX | ST77_MADCTL_MY,
-      ST77_MADCTL_MV | ST77_MADCTL_MY,
-      0,
-  };
-  const static uint8_t st7735_width_map[] = {160, 128, 160, 128};
-  const static uint8_t st7735_height_map[] = {128, 160, 128, 160};
+  uint8_t madctl = set_orientation(ctx, orientation);
 
-  write_register(ctx, ST7735_MADCTL, st7735_orientation_map[orientation] | ST77_MADCTL_RGB);
-  ctx->parent.width  = st7735_width_map[orientation];
-  ctx->parent.height = st7735_height_map[orientation];
+  write_register(ctx, ST7735_MADCTL, madctl | ST77_MADCTL_RGB);
+
   return (Result){.code = 0};
 }
 
@@ -284,10 +314,155 @@ Result lcd_st7735_rgb565_finish(St7735Context *ctx) {
   return (Result){.code = 0};
 }
 
-extern Result lcd_st7735_set_font(St7735Context *ctx, const Font *font);
-
-extern Result lcd_st7735_set_font_colors(St7735Context *ctx, uint32_t background_color, uint32_t foreground_color);
-
-extern Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width);
+Result lcd_st7735_reset(St7735Context *ctx, bool hw) {
+  if (hw && ctx->parent.interface->reset) {
+    ctx->parent.interface->reset(ctx->parent.interface->handle);
+  } else {
+    write_command(ctx, ST7735_SWRESET);
+    delay(ctx, 120);
+  }
+  return (Result){.code = 0};
+}
 
 Result lcd_st7735_close(St7735Context *ctx) { return (Result){.code = 0}; }
+
+void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, size_t height) {
+  size_t w = (width - ctx->parent.width) / 2;
+  size_t h = (height - ctx->parent.height) / 2;
+  if (ctx->parent.orientation == LCD_Rotate0 || ctx->parent.orientation == LCD_Rotate180) {
+    ctx->col_offset = w;
+    ctx->row_offset = h;
+  } else {
+    ctx->col_offset = h;
+    ctx->row_offset = w;
+  }
+}
+
+// Determine if an LCD offset of 2 pixels in the narrow dimension and
+// 1 pixel in the wide dimension must be applied for correct function.
+// Involves writing a bundle pixels to the LCD and reading some back
+// from the start of the affected rows to discover the default width.
+//
+// The state of the GM[2:0] config pads of the ST7735 controller within
+// the LCD is the root value we wish to discover, but can only do so
+// by observing side-effects. This function infers GM state from the
+// reset value the of CASET register, which itself must be inferred from
+// pixel buffer behaviour after a reset as it cannot be read directly.
+// The test used is whether the 129th pixel or the 133rd pixel written
+// ends up at the start of the second row, as distinguished by writing
+// different values after the 132nd. We check multiple rows to be sure.
+// Wrapping at 128 infers CASET XE[7:0]=0x7F, which infers GM[2:0]='011'.
+// Wrapping at 132 infers CASET XE[7:0]=0x83, which infers GM[2:0]='000'.
+//
+// GM[2:0]='000' (132x162) is incorrect for the 128x160 panel actually present,
+// meaning minor coordinate offsets are needed. The offsets are 2 pixels
+// in the narrow dimension (x if portrait) and 1 pixel in the wide dimension
+// (y if portrait). This is due to how the ST7735 controller maps the
+// contents of the internal frame buffer to display itself. See the
+// (unfortunately error-ridden) ST7735 datasheet for more details.
+//
+// NOTE1: Must be run after a HW or SW reset and before any CASET commands.
+// NOTE2: Does NOT always perform a reset before returning. State may be dirty.
+
+Result lcd_st7735_check_frame_buffer_resolution(St7735Context *ctx, size_t *width, size_t *height) {
+  enum {
+    attempts = 3,
+    buf_len  = 4,
+  };
+
+  uint8_t buf[buf_len];
+  const uint8_t patterns[4] = {0xA8, 0xCC, 0xE0, 0x90};
+  uint8_t result;
+
+  if (ctx == NULL && height == NULL && width == NULL) {
+    return (Result){.code = ErrorNullArgs};
+  }
+
+  if (ctx->parent.interface->spi_read == NULL) {
+    return (Result){.code = ErrorNullCallback};
+  }
+
+  for (unsigned iter = 0; iter < attempts; iter++) {
+    // Ensure CS line is de-asserted ahead of any commands
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, false);
+
+    // Select 18-bit pixel format. Affects writes only (reads always 18-bit).
+    // 18-bit pixel format (as per ST7735 datasheet):
+    //
+    //  MSB                                                                 LSB
+    //  R5 R4 R3 R2 R1 R0 -- -- G5 G4 G3 G2 G1 G0 -- -- B5 B4 B3 B2 B1 B0 -- --
+    // | First pixel byte      | Second pixel byte     | Last pixel byte       |
+    //
+    // Where "R5" is the first bit on the wire, and "--" bits are ignored.
+    write_command(ctx, ST7735_COLMOD);
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    uint8_t value = 0x06;
+    write_buffer(ctx, &value, sizeof(value));
+
+    // Write 4 lots (possibly lines) of 132 pixels into the frame buffer.
+    // Change the value being written every 132 pixels.
+    write_command(ctx, ST7735_RAMWR);
+    ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+    for (unsigned l = 0u; l < sizeof(patterns); l++) {
+      for (unsigned p = 0u; p < 132; p++) {
+        // 18-bit pixel value packed into 24-bit (3 bytes) payload.
+        // Two padding LSBs and 6 MSBs of real data per byte/channel.
+        buf[0] = patterns[l];  // red
+        buf[1] = patterns[l];  // green
+        buf[2] = patterns[l];  // blue
+        write_buffer(ctx, buf, 3);
+      }
+    }
+
+    // Read back a pixel from the start of the second, third, and fourth lines
+    // of the external frame buffer to determine whether the ST7735 controller
+    // in the LCD assembly is configured for 128x160 or 132x162 (by GM pads).
+    // Pixels are always read back in 18-bit format, regardless of COLMOD.
+    result = 0;
+    for (uint8_t l = 1u; l < sizeof(patterns); l++) {
+      // Setting the addess in the frame buffer to start reading the pixels.
+      buf[0] = l >> 8;
+      buf[1] = l;
+      buf[2] = 99 >> 8;
+      buf[3] = 99;
+      write_command(ctx, ST7735_RASET);
+      ctx->parent.interface->gpio_write(ctx->parent.interface->handle, false, true);
+      write_buffer(ctx, buf, 4);
+
+      write_command(ctx, ST7735_RAMRD);
+      // Read 1 dummy byte and 3 actual bytes (offset by a dummy clock cycle)
+      ctx->parent.interface->spi_read(ctx->parent.interface->handle, buf, 4);
+      ctx->parent.interface->gpio_write(ctx->parent.interface->handle, true, false);
+
+      if (buf[1] == (patterns[l] >> 1) && buf[2] == (patterns[l] >> 1) && buf[3] == (patterns[l] >> 1)) {
+        // Value read was that written for that line (shift adjusted for
+        // dummy bit), so controller is configured for 132x162 mode (GM=000).
+        result |= 1u << l;
+      } else if (!(buf[1] == (patterns[l - 1] >> 1) && buf[2] == (patterns[l - 1] >> 1) &&
+                   buf[3] == (patterns[l - 1] >> 1))) {
+        // Unexpected value. Reset and retry, or give up and use default.
+        result = 0xFFu;
+        break;
+      }
+    }
+
+    if (result == 0x00) {
+      // Three out of three agree, 128-high it gladly be
+      *width  = 160;
+      *height = 128;
+      return (Result){.code = ErrorOk};
+    }
+    if (result == 0x0e) {
+      // Three out of three agree, 132-high it sadly be
+      *width  = 162;
+      *height = 132;
+      return (Result){.code = ErrorOk};
+    }
+
+    // Software reset to restore most state to default - particularly CASET
+    lcd_st7735_reset(ctx, /*hw=*/false);
+  }
+
+  // Ran out of attempts, use default (correct 128-wide)
+  return (Result){.code = ErrorOperationFailed};
+}

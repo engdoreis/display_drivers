@@ -31,6 +31,15 @@
 #define MAX(_A, _B) _A < _B ? _B : _A
 #endif
 
+#ifndef SWAP
+#define SWAP(_A, _B, TYPE)                                                                                             \
+  do {                                                                                                                 \
+    TYPE temp = (_A);                                                                                                  \
+    (_A)      = (_B);                                                                                                  \
+    (_B)      = temp;                                                                                                  \
+  } while (false)
+#endif
+
 typedef enum {
   LCD_Rotate0 = 0,
   LCD_Rotate90,
@@ -38,9 +47,15 @@ typedef enum {
   LCD_Rotate270,
 } LCD_Orientation;
 
-// TODO: Define error codes.
+typedef enum ErrorCode_e {
+  ErrorOk              = 0,
+  ErrorNullArgs        = -1,
+  ErrorNullCallback    = -2,
+  ErrorOperationFailed = -3,
+} ErrorCode;
+
 typedef struct Result_st {
-  int32_t code; /*!< */
+  int32_t code; /*!< See #ErrorCode */
 } Result;
 
 /**
@@ -51,14 +66,26 @@ typedef struct LCD_Interface_st {
                    application. If not intended to be used it can be `NULL` */
 
   /**
-   * @brief Send data through spi interface.
+   * @brief Write bytes to the spi bus.
    *
    * @param data Pointer to data array to be sent.
-   * @param len Len of the data to be sent.
+   * @param len Length of the data to be sent.
    *
-   * @return the number of data sent.
+   * @return the number of bytes sent.
    */
   uint32_t (*spi_write)(void *handle, uint8_t *data, size_t len);
+
+  /**
+   * @brief Clock the spi and read the data.
+   *
+   * This function is only used in more complex operations, for basic use it can be NULL.
+   *
+   * @param data Pointer to array to store the data read.
+   * @param len Length of the data to be sent.
+   *
+   * @return the number of bytes read.
+   */
+  uint32_t (*spi_read)(void *handle, uint8_t *data, size_t len);
 
   /**
    * @brief Set the state of the chip select and D/C pins.
@@ -75,9 +102,7 @@ typedef struct LCD_Interface_st {
    */
   uint32_t (*reset)(void *handle);
 
-  /**
-   * @brief Apply a hardware reset to the display by toggling the pin.
-   * @param pwm Set the pwm (0-100).
+  /** @brief Apply a hardware reset to the display by toggling the pin. @param pwm Set the pwm (0-100).
    *
    * Note: Future use only.
    */
@@ -88,7 +113,7 @@ typedef struct LCD_Interface_st {
    *
    * @param millis Time the delay should take in milliseconds.
    */
-  void (*timer_delay)(uint32_t millis);
+  void (*timer_delay)(void *handle, uint32_t millis);
 } LCD_Interface;
 
 typedef struct LCD_Context_st {
@@ -98,6 +123,7 @@ typedef struct LCD_Context_st {
   const Font *font;          /*!< Font bitmaps*/
   uint32_t background_color; /*< Background color for font bitmaps */
   uint32_t foreground_color; /*< Foreground color for font bitmaps */
+  LCD_Orientation orientation;
 } LCD_Context;
 
 typedef struct LCD_Point_st {
@@ -116,7 +142,8 @@ typedef struct LCD_rectangle_st {
   size_t height;    /*!< Height from the origin.*/
 } LCD_rectangle;
 
-Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height);
+Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height,
+                LCD_Orientation orientation);
 
 static inline Result LCD_get_resolution(LCD_Context *ctx, size_t *height, size_t *width) {
   *height = ctx->height;
@@ -133,6 +160,16 @@ static inline Result LCD_set_font_colors(LCD_Context *ctx, uint32_t background_c
 static inline Result LCD_set_font(LCD_Context *ctx, const Font *font) {
   ctx->font = font;
   LCD_set_font_colors(ctx, 0xffffff, 0x00);
+  return (Result){.code = 0};
+}
+
+static inline Result LCD_get_font_size(LCD_Context *ctx, size_t *width, size_t *height) {
+  if (ctx->font == NULL) {
+    return (Result){.code = -1};
+  }
+
+  *height = ctx->font->height;
+  *width  = ctx->font->descriptor_table->width;
   return (Result){.code = 0};
 }
 

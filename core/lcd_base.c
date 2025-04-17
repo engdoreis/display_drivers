@@ -7,9 +7,11 @@
 
 #include "font.h"
 
-Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height) {
-  ctx->interface = interface;
-  ctx->height    = height;
-  ctx->width     = width;
+Result LCD_Init(LCD_Context *ctx, LCD_Interface *interface, uint32_t width, uint32_t height,
+                LCD_Orientation orientation) {
+  ctx->interface   = interface;
+  ctx->height      = height;
+  ctx->width       = width;
+  ctx->orientation = orientation;
   return (Result){.code = 0};
 }

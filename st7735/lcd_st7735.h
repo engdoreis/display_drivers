@@ -14,16 +14,19 @@
 
 /**
  * @brief Context struct.
- *
  */
 typedef struct stSt7735Context {
   LCD_Context parent; /*!< Base context*/
   uint32_t rgb_background;
   uint32_t rgb_foreground;
+  // Custom offsets are necessary for some cheap displays due to controller configurations that exceed the panel's
+  // actual resolution.
+  size_t col_offset;
+  size_t row_offset;
 } St7735Context;
 
 /**
- * @brief Initialize the LCD driver.
+ * @brief Initialize the LCD driver interfaces.
  *
  * Example:
  * ```C
@@ -45,6 +48,24 @@ typedef struct stSt7735Context {
 Result lcd_st7735_init(St7735Context *ctx, LCD_Interface *interface);
 
 /**
+ * @brief Initialize the LCD controller, this function must me called only after `lcd_st7735_init`.
+ *
+ * @param ctx Handle.
+ * @return Result of the operation.the operation.
+ */
+Result lcd_st7735_startup(St7735Context *ctx);
+
+/**
+ * @brief Reset the lcd controller.
+ *
+ * @param ctx Handle.
+ * @param hw If `true` perform a hardware reset (if the callback is registered), otherwise send a software reset
+ * command.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_reset(St7735Context *ctx, bool hw);
+
+/**
  * @brief Clean the screen by drawing a write rectangle.
  *
  * @param ctx Handle.
@@ -60,7 +81,7 @@ Result lcd_st7735_clean(St7735Context *ctx);
  * @param[out] width Pointer to receive the width in pixels.
  * @return Result of the operation.
  */
-inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
+static inline Result lcd_st7735_get_resolution(St7735Context *ctx, size_t *height, size_t *width) {
   return LCD_get_resolution(&ctx->parent, height, width);
 }
 
@@ -216,4 +237,24 @@ Result lcd_st7735_set_orientation(St7735Context *ctx, LCD_Orientation orientatio
  */
 Result lcd_st7735_close(St7735Context *ctx);
 
+/**
+ * @brief Set the controller frame buffer resolution configured via GM[2:0].
+ * This function is used to workaround a mismatch between the LCD panel resolution and the frame buffer resolution.
+ * For some cheap displays, the controller resolution may be configured to 162x132 pixels, that exceeds the panel's
+ * resolution of 160x128 pixels.
+ * @param width The frame buffer width in pixels.
+ * @param height The frame buffer height in pixels.
+ */
+void lcd_st7735_set_frame_buffer_resolution(St7735Context *ctx, size_t width, size_t height);
+
+/**
+ * @brief Trying to detect the GM[2:0] pad configuration and return the configured resolution.
+ *
+ * This function requires the `spi_read` callback to be implemented.
+ *
+ * @param[out] width The width in pixels.
+ * @param[out] height The height in pixels.
+ * @return Result of the operation.
+ */
+Result lcd_st7735_check_frame_buffer_resolution(St7735Context *lcd, size_t *width, size_t *height);
 #endif
