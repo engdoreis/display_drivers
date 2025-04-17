@@ -23,7 +23,9 @@ static void write_buffer(St7735Context *ctx, const uint8_t *buffer, size_t lengt
   }
 }
 
-static void delay(St7735Context *ctx, uint32_t millisecond) { ctx->parent.interface->timer_delay(millisecond); }
+static inline void delay(St7735Context *ctx, uint32_t millisecond) {
+  ctx->parent.interface->timer_delay(ctx->parent.interface->handle, millisecond);
+}
 
 static void run_script(St7735Context *ctx, const uint8_t *addr) {
   uint8_t numCommands, numArgs;

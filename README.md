@@ -23,7 +23,7 @@ static void set_pwm(void *handle, uint8_t pwm){
     //Code here.
 }
 
-static void sleep_ms(uint32_t ms){
+static void sleep_ms(void *handle, uint32_t ms){
     //Code here.
 }
 

@@ -91,7 +91,7 @@ typedef struct LCD_Interface_st {
    *
    * @param millis Time the delay should take in milliseconds.
    */
-  void (*timer_delay)(uint32_t millis);
+  void (*timer_delay)(void *handle, uint32_t millis);
 } LCD_Interface;
 
 typedef struct LCD_Context_st {
