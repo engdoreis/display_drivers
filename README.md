@@ -86,3 +86,18 @@ void main(void){
 }
 ```
 
+## Running unittests
+Start nix development environment
+```sh
+nix develop
+```
+Build using Cmake
+```sh
+cmake -S . -B ./build/. && cmake --build ./build/.
+```
+Run the test
+```sh
+./build/tests/st7735_driver_test
+```
+
+

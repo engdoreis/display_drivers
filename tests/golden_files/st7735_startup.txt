@@ -1,0 +1,189 @@
+gpio_write: cs=false, dc=false
+spi_write: 01 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 50
+gpio_write: cs=false, dc=false
+spi_write: 11 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 500
+gpio_write: cs=false, dc=false
+spi_write: 3a 
+gpio_write: cs=false, dc=true
+spi_write: 05 
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: b1 
+gpio_write: cs=false, dc=true
+spi_write: 00 06 03 
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: 36 
+gpio_write: cs=false, dc=true
+spi_write: 68 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: b6 
+gpio_write: cs=false, dc=true
+spi_write: 15 02 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: b4 
+gpio_write: cs=false, dc=true
+spi_write: 00 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c0 
+gpio_write: cs=false, dc=true
+spi_write: 02 70 
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: c1 
+gpio_write: cs=false, dc=true
+spi_write: 05 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c2 
+gpio_write: cs=false, dc=true
+spi_write: 01 02 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c5 
+gpio_write: cs=false, dc=true
+spi_write: 3c 38 
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: fc 
+gpio_write: cs=false, dc=true
+spi_write: 11 15 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: e0 
+gpio_write: cs=false, dc=true
+spi_write: 09 16 09 20 21 1b 13 19 17 15 1e 2b 04 05 02 0e 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: e1 
+gpio_write: cs=false, dc=true
+spi_write: 0b 14 08 1e 22 1d 18 1e 1b 1a 24 2b 06 06 02 0f 
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: 2a 
+gpio_write: cs=false, dc=true
+spi_write: 00 02 00 81 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 2b 
+gpio_write: cs=false, dc=true
+spi_write: 00 02 00 81 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 13 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: 29 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 500
+gpio_write: cs=false, dc=false
+spi_write: 01 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 150
+gpio_write: cs=false, dc=false
+spi_write: 11 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 500
+gpio_write: cs=false, dc=false
+spi_write: b1 
+gpio_write: cs=false, dc=true
+spi_write: 00 02 02 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: b2 
+gpio_write: cs=false, dc=true
+spi_write: 00 02 02 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: b3 
+gpio_write: cs=false, dc=true
+spi_write: 00 02 02 00 02 02 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: b4 
+gpio_write: cs=false, dc=true
+spi_write: 07 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c0 
+gpio_write: cs=false, dc=true
+spi_write: a2 02 84 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c1 
+gpio_write: cs=false, dc=true
+spi_write: c5 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c2 
+gpio_write: cs=false, dc=true
+spi_write: 0a 00 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c3 
+gpio_write: cs=false, dc=true
+spi_write: 8a 2a 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c4 
+gpio_write: cs=false, dc=true
+spi_write: 8a ee 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: c5 
+gpio_write: cs=false, dc=true
+spi_write: 0e 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 20 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 36 
+gpio_write: cs=false, dc=true
+spi_write: 68 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 3a 
+gpio_write: cs=false, dc=true
+spi_write: 05 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: e0 
+gpio_write: cs=false, dc=true
+spi_write: 02 1c 07 12 37 32 29 2d 29 25 2b 39 00 01 03 10 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: e1 
+gpio_write: cs=false, dc=true
+spi_write: 03 1d 07 06 2e 2c 29 2d 2e 2e 37 3f 00 00 02 10 
+gpio_write: cs=true, dc=true
+gpio_write: cs=false, dc=false
+spi_write: 13 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 10
+gpio_write: cs=false, dc=false
+spi_write: 29 
+gpio_write: cs=false, dc=true
+gpio_write: cs=true, dc=true
+sleep_ms: 100

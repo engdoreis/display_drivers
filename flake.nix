@@ -17,6 +17,7 @@ outputs = { self, nixpkgs, flake-utils, ... }:
             cmake
             clang-tools_18
             gdb
+            python310
           ];
           shellHook = ''
             echo "C++ dev environment ready!"
