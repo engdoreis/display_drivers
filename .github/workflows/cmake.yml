@@ -1,0 +1,41 @@
+name: CMake
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt install software-properties-common
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt install cmake gcc-13 g++-13
+
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 60
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 60
+        sudo update-alternatives --config gcc
+        sudo update-alternatives --config g++
+
+    - name: Linting
+      run: find -name "*.cc" -o  -name "*.c" -o  -name "*.hh" -o  -name "*.h" | xargs clang-format -n 
+
+    - name: Build 
+      run: |
+        cmake -B build -S ./ && cmake --build build
+
+    - name: Run st7735_driver_test 
+      run: |
+        ./build/tests/st7735_driver_test
+        
