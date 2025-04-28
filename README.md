@@ -41,8 +41,8 @@ void main(void){
 
     lcd_st7735_init(&ctx, &interface);
     lcd_st7735_startup(&ctx);
-    lcd_st7735_fill_rectangle(&ctx, (LCD_rectangle){.origin = {.x = 0, .y = 0},
-        .end = {.x = 160, .y = 128}}, 0x00FF00);
+    lcd_st7735_fill_rectangle(
+       &ctx_, (LCD_rectangle){.origin = {.x = 0, .y = 0}, .width = 160, .height = 128}, 0x00FF00);
 }
 ```
 
@@ -85,4 +85,19 @@ void main(void){
             .end = {.x = 160, .y = 128}}, 0x00FF00);
 }
 ```
+
+## Running unittests
+Start nix development environment
+```sh
+nix develop
+```
+Build using Cmake
+```sh
+cmake -S . -B ./build/. && cmake --build ./build/.
+```
+Run the test
+```sh
+./build/tests/st7735_driver_test
+```
+
 

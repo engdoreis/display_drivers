@@ -31,6 +31,10 @@
 #ifndef DISPLAY_DRIVERS_ST7735_ST7735_CMD_H_
 #define DISPLAY_DRIVERS_ST7735_ST7735_CMD_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   ST7735_NOP     = 0x00,
   ST7735_SWRESET = 0x01,
@@ -91,5 +95,9 @@ typedef enum {
   ST7735_ColorYellow  = 0xFFE0,
   ST7735_ColorWhite   = 0xFFFF,
 } ST7735_Color;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

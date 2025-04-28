@@ -6,6 +6,11 @@
 #ifndef DISPLAY_DRIVERS_COMMON_BASE_H_
 #define DISPLAY_DRIVERS_COMMON_BASE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -191,5 +196,9 @@ static inline uint16_t LCD_rgb565_to_bgr565(const uint8_t rgb[2]) {
   uint16_t color = (uint16_t)(b | g << 5 | r << 11);
   return ENDIANESS_TO_HALF_WORD(color);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
