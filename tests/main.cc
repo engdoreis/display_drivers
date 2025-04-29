@@ -69,9 +69,9 @@ class DisplayTest : public testing::Test {
 #define GET_GOLDEN_FILE()                                                                                              \
   std::format("./tests/golden_files/test_{}.png", testing::UnitTest::GetInstance()->current_test_info()->name())
 
-  template<typename T>
-  T rotate_left(T& v) {
-    v = v << 8 | v >> (32 - 8); 
+  template <typename T>
+  T rotate_left(T &v) {
+    v = v << 8 | v >> (32 - 8);
     return v;
   }
   std::string make_temp_filename() {
@@ -191,7 +191,7 @@ TEST_F(st7735SimTest, draw_rectangles) {
   Result res = lcd_st7735_clean(&ctx_);
   EXPECT_EQ(res.code, 0);
   size_t increment = 20;
-  uint32_t rgb = 0x0000FF;
+  uint32_t rgb     = 0x0000FF;
 
   {
     LCD_rectangle rec{.origin = {.x = 0, .y = 0}, .width = DisplayWidth, .height = 10};
@@ -276,6 +276,58 @@ TEST_F(st7735SimTest, draw_text) {
   do {
     draw_text();
   } while (pos.y < DisplayHeight - font_h);
+
+  std::string filename = make_temp_filename();
+  mock_.simulator.png(filename);
+  compare_img(filename, GET_GOLDEN_FILE());
+}
+
+#include <src/core/m3x6_16pt.h>
+#include <src/core/m5x7_16pt.h>
+TEST_F(st7735SimTest, font_m5x7_16pt) {
+  Result res = lcd_st7735_clean(&ctx_);
+  EXPECT_EQ(res.code, 0);
+
+  std::string ascii = "";
+  for (int i = 32; i <= 126; ++i) {
+    if (std::isprint(static_cast<unsigned char>(i))) {
+      ascii += static_cast<char>(i);
+    }
+  }
+  size_t font_h(0), rows(0), columns(0), ascii_index(0);
+  uint32_t bg(0xff), fg(0x00);
+  LCD_Point pos{.x = 0, .y = 0};
+
+  auto set_font = [&](const Font *font) {
+    res = lcd_st7735_set_font(&ctx_, font);
+    EXPECT_EQ(res.code, 0);
+    font_h      = ctx_.parent.font->height;
+    rows        = DisplayHeight / ctx_.parent.font->height;
+    columns     = DisplayWidth / (ctx_.parent.font->descriptor_table->width + 1);
+    ascii_index = 0;
+  };
+
+  auto draw_text = [&]() {
+    res = lcd_st7735_set_font_colors(&ctx_, bg, fg);
+    EXPECT_EQ(res.code, 0);
+    std::string print = ascii.substr(ascii_index, columns);
+    res               = lcd_st7735_puts(&ctx_, pos, print.c_str());
+    EXPECT_EQ(res.code, print.size());
+    ascii_index += columns;
+    pos.y += font_h;
+    bg = bg << 8 | bg >> (32 - 8);  // Rotate left
+    fg = bg ^ 0xffffff;
+  };
+
+  set_font(&m5x7_16ptFont);
+  do {
+    draw_text();
+  } while (ascii_index < ascii.size());
+
+  set_font(&m3x6_16ptFont);
+  do {
+    draw_text();
+  } while (pos.y < DisplayHeight - font_h && ascii_index < ascii.size());
 
   std::string filename = make_temp_filename();
   mock_.simulator.png(filename);
