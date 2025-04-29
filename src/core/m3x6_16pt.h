@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+// This is a rasterized version of the m3x6 font.
+// The m3x6 font is created by Daniel Linssen and is free to use with attribution.
+// The original TTF font can be found at https://managore.itch.io/m3x6
+
 #ifndef M3X6_16PT_H_
 #define M3X6_16PT_H_
 
