@@ -54,10 +54,10 @@ static void run_script(St7735Context *ctx, const uint8_t *addr) {
 }
 
 static void set_address(St7735Context *ctx, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-  x0 += ctx->row_offset;
-  x1 += ctx->row_offset;
-  y0 += ctx->col_offset;
-  y1 += ctx->col_offset;
+  y0 += ctx->row_offset;
+  y1 += ctx->row_offset;
+  x0 += ctx->col_offset;
+  x1 += ctx->col_offset;
 
   {
     uint8_t coordinate[4] = {(uint8_t)(x0 >> 8), (uint8_t)x0, (uint8_t)(x1 >> 8), (uint8_t)x1};
